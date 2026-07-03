@@ -103,7 +103,7 @@ later without SEO penalty.
 
 - RSS feed (`/rss.xml`) — local posts (external entries excluded).
 - Sitemap, canonical URLs, meta/OG tags per page.
-- Per-post OG images (generated at build with satori or astro-og-canvas) so
+- Per-post OG images (generated at build with astro-og-canvas) so
   shared links look good on social — important for DevRel reach.
 - Reading time on posts.
 - 404 page (terminal joke permitted: `command not found`).
