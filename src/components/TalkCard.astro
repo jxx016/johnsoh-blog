@@ -1,0 +1,25 @@
+---
+import VideoPlayer from './VideoPlayer.astro';
+
+interface Props {
+  talk: {
+    data: {
+      title: string; event: string; date: Date; description?: string;
+      video?: { type: 'youtube' | 'r2'; url: string; poster?: string };
+      slidesUrl?: string;
+    };
+  };
+}
+const { talk } = Astro.props;
+const d = talk.data;
+const fmt = d.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toLowerCase();
+---
+<div style="padding:20px 0; border-bottom:1px solid var(--line);">
+  <p style="font-size:16px; font-weight:600;">{d.title}</p>
+  <p class="mono" style="font-size:12px; color:var(--dim); margin:4px 0 12px;">
+    {d.event} · {fmt}
+    {d.slidesUrl && <> · <a href={d.slidesUrl} style="color:var(--ext);">slides ↗</a></>}
+  </p>
+  {d.description && <p style="font-size:14px; color:var(--dim); margin-bottom:12px;">{d.description}</p>}
+  {d.video && <VideoPlayer video={d.video} title={d.title} />}
+</div>

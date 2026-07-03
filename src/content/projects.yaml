@@ -1,0 +1,12 @@
+- id: acp-quickstart-kit
+  name: "acp-quickstart-kit"
+  description: "Starter templates for agent commerce integrations"
+  tags: ["typescript", "sdk"]
+  repoUrl: "https://github.com/johnsoh/acp-quickstart-kit"
+  demoUrl: "https://acp-quickstart.pages.dev"
+  featured: true
+- id: webhook-inspector
+  name: "webhook-inspector"
+  description: "CLI to replay and debug webhook payloads locally"
+  tags: ["go", "cli"]
+  repoUrl: "https://github.com/johnsoh/webhook-inspector"

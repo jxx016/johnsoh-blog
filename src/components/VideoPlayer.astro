@@ -1,0 +1,31 @@
+---
+interface Props {
+  video: { type: 'youtube' | 'r2'; url: string; poster?: string };
+  title: string;
+}
+const { video, title } = Astro.props;
+function youtubeId(url: string): string | null {
+  const m = url.match(/(?:youtu\.be\/|v=)([\w-]{11})/);
+  return m ? m[1] : null;
+}
+const yt = video.type === 'youtube' ? youtubeId(video.url) : null;
+---
+{yt ? (
+  <iframe
+    src={`https://www.youtube-nocookie.com/embed/${yt}`}
+    title={title}
+    loading="lazy"
+    allowfullscreen
+    style="width:100%; aspect-ratio:16/9; border:1px solid var(--line); border-radius:8px;"
+  ></iframe>
+) : (
+  <video
+    controls
+    preload="metadata"
+    poster={video.poster}
+    style="width:100%; aspect-ratio:16/9; border:1px solid var(--line); border-radius:8px; background:var(--raise);"
+  >
+    <source src={video.url} type="video/mp4" />
+    Your browser doesn't support embedded video. <a href={video.url}>Download it</a> instead.
+  </video>
+)}

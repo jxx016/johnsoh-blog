@@ -1,0 +1,18 @@
+---
+import type { FeedItem } from '../lib/feed';
+
+interface Props { item: FeedItem; showDesc?: boolean; }
+const { item, showDesc = false } = Astro.props;
+const fmt = (d: Date) =>
+  d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toLowerCase();
+---
+<div class="row">
+  <div class="head">
+    <span class="title">
+      <a href={item.href} rel={item.external ? 'noopener' : undefined}>{item.title}</a>
+      {item.external && <span class="badge">on {item.publication} ↗</span>}
+    </span>
+    <span class="date">{fmt(item.date)}</span>
+  </div>
+  {showDesc && item.description && <p class="desc">{item.description}</p>}
+</div>

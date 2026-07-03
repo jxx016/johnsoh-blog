@@ -1,0 +1,17 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../layouts/Base.astro';
+import Prompt from '../components/Prompt.astro';
+import TalkCard from '../components/TalkCard.astro';
+
+const talks = (await getCollection('talks')).sort(
+  (a, b) => b.data.date.getTime() - a.data.date.getTime()
+);
+---
+<Base title="Talks — John Soh" description="Conference and meetup talks by John Soh, with video and slides.">
+  <Prompt text="ls talks/" />
+  <h1>Talks</h1>
+  <div style="margin-top:12px; border-top:1px solid var(--line);">
+    {talks.map((talk) => <TalkCard talk={talk} />)}
+  </div>
+</Base>

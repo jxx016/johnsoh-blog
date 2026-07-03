@@ -1,0 +1,57 @@
+---
+import '../styles/global.css';
+
+interface Props { title: string; description: string; ogImage?: string; canonicalOverride?: string; }
+const { title, description, ogImage, canonicalOverride } = Astro.props;
+const canonical = canonicalOverride ?? new URL(Astro.url.pathname, Astro.site);
+const og = new URL(ogImage ?? '/og/site.png', Astro.site);
+const path = Astro.url.pathname;
+const current = (p: string) => (path === p || (p !== '/' && path.startsWith(p)) ? 'page' : undefined);
+---
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonical} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <link rel="alternate" type="application/rss+xml" title="RSS" href="/rss.xml" />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:url" content={canonical} />
+    <meta property="og:image" content={og} />
+    <meta name="twitter:card" content="summary_large_image" />
+    <script is:inline>
+      const t = localStorage.getItem('theme');
+      if (t === 'light') document.documentElement.dataset.theme = 'light';
+    </script>
+  </head>
+  <body>
+    <div class="wrap">
+      <nav class="nav">
+        <a class="logo" href="/">~/<b>johnsoh</b></a>
+        <span class="links">
+          <a href="/writing" aria-current={current('/writing')}>writing</a>
+          <a href="/talks" aria-current={current('/talks')}>talks</a>
+          <a href="/projects" aria-current={current('/projects')}>projects</a>
+          <a href="/about" aria-current={current('/about')}>about</a>
+          <button id="theme" aria-label="Toggle theme" style="background:none;border:none;cursor:pointer;color:var(--dim);font-size:14px;padding:0">☀</button>
+        </span>
+      </nav>
+      <slot />
+      <footer class="footer">
+        <span>© 2026 John Soh</span>
+        <span><a href="/rss.xml">rss</a> · <a href="https://github.com/johnsoh">github</a></span>
+      </footer>
+    </div>
+    <script is:inline>
+      document.getElementById('theme').addEventListener('click', () => {
+        const root = document.documentElement;
+        const light = root.dataset.theme !== 'light';
+        if (light) { root.dataset.theme = 'light'; localStorage.setItem('theme', 'light'); }
+        else { delete root.dataset.theme; localStorage.setItem('theme', 'dark'); }
+      });
+    </script>
+  </body>
+</html>
