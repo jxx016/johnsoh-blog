@@ -22,3 +22,19 @@ Personal blog + portfolio. Astro, markdown-in-git, Cloudflare Pages.
 ## Commands
 
 `npm run dev` · `npm run build` · `npm test` · `npm run check`
+
+## Deploy (Cloudflare Pages)
+
+1. Create GitHub repo, push `main`.
+2. Cloudflare dashboard → Workers & Pages → Create → Pages → connect repo.
+   Build command: `npm run build`. Output dir: `dist`. Node 20.
+3. Custom domain: add domain in Pages → Custom domains (DNS on Cloudflare).
+4. Update `site:` in `astro.config.mjs` to the final domain; push.
+
+## R2 video bucket
+
+1. `wrangler r2 bucket create blog-media`
+2. R2 → blog-media → Settings → Public access → connect custom domain
+   `media.<domain>`.
+3. Upload: `wrangler r2 object put blog-media/talks/<name>.mp4 --file <file>`
+   (same for `.jpg` posters from `scripts/poster.sh`).
