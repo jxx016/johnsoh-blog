@@ -1,0 +1,37 @@
+---
+import { getCollection, render } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import { readingTime } from '../../lib/readingTime';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => import.meta.env.PROD ? !data.draft : true);
+  return posts.map((post) => ({ params: { slug: post.id }, props: { post } }));
+}
+const { post } = Astro.props;
+const { Content } = await render(post);
+const mins = readingTime(post.body ?? '');
+const fmt = post.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toLowerCase();
+---
+<Base
+  title={`${post.data.title} — John Soh`}
+  description={post.data.description}
+  ogImage={`/og/writing/${post.id}.png`}
+  canonicalOverride={post.data.canonicalUrl}
+>
+  <p class="mono" style="font-size:12px; color:var(--dim); margin-bottom:16px;">
+    <a href="/writing">← ~/writing</a>
+  </p>
+  <h1 style="text-wrap:balance;">{post.data.title}</h1>
+  <p class="mono" style="font-size:12px; color:var(--dim); margin:8px 0 28px;">
+    {fmt} · {mins} min ·
+    {post.data.tags.map((t) => <a href={`/writing/tags/${t}`} style="color:var(--accent);">#{t} </a>)}
+  </p>
+  {post.data.canonicalUrl && (
+    <p class="mono" style="font-size:12px; color:var(--dim); margin-bottom:20px;">
+      originally published at <a href={post.data.canonicalUrl} style="color:var(--ext);">{new URL(post.data.canonicalUrl).hostname}</a>
+    </p>
+  )}
+  <article class="prose">
+    <Content />
+  </article>
+</Base>
