@@ -1,0 +1,23 @@
+---
+interface Props {
+  project: {
+    data: {
+      name: string; description: string; tags: string[];
+      repoUrl?: string; demoUrl?: string; featured: boolean;
+    };
+  };
+}
+const { project } = Astro.props;
+const d = project.data;
+---
+<div style="border:1px solid var(--line); border-radius:8px; padding:14px 16px;">
+  <p style="font-size:15px; font-weight:600;">
+    <span style="color:var(--accent);">▸</span> {d.name}
+  </p>
+  <p style="font-size:13.5px; color:var(--dim); margin:4px 0 10px;">{d.description}</p>
+  <p class="mono" style="font-size:11px; color:var(--dim); display:flex; gap:6px; align-items:center; flex-wrap:wrap;">
+    {d.tags.map((t) => <span style="border:1px solid var(--line); border-radius:4px; padding:1px 7px;">{t}</span>)}
+    {d.repoUrl && <a href={d.repoUrl} style="color:var(--ext);">repo ↗</a>}
+    {d.demoUrl && <a href={d.demoUrl} style="color:var(--ext);">demo ↗</a>}
+  </p>
+</div>
