@@ -1,0 +1,12 @@
+---
+import Base from '../layouts/Base.astro';
+import Prompt from '../components/Prompt.astro';
+---
+<Base title="404 — John Soh" description="Page not found.">
+  <Prompt text={Astro.url.pathname.replace(/^\//, '') || '???'} />
+  <h1 class="mono" style="font-size:20px;">command not found</h1>
+  <p style="color:var(--dim); margin-top:12px;">
+    That page doesn't exist. Try <a href="/" style="color:var(--accent);">~/</a> or
+    <a href="/writing" style="color:var(--accent);">~/writing</a>.
+  </p>
+</Base>
