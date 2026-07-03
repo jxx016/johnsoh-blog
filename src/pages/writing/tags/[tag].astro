@@ -1,0 +1,28 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../../layouts/Base.astro';
+import Prompt from '../../../components/Prompt.astro';
+import PostRow from '../../../components/PostRow.astro';
+import { buildFeed } from '../../../lib/feed';
+
+export async function getStaticPaths() {
+  const posts = await getCollection('posts', ({ data }) => import.meta.env.PROD ? !data.draft : true);
+  const external = await getCollection('external');
+  const feed = buildFeed(posts, external);
+  const tags = [...new Set(feed.flatMap((f) => f.tags))];
+  return tags.map((tag) => ({ params: { tag }, props: { items: feed.filter((f) => f.tags.includes(tag)), tags } }));
+}
+const { tag } = Astro.params;
+const { items, tags } = Astro.props;
+---
+<Base title={`#${tag} — John Soh`} description={`Articles tagged ${tag}.`}>
+  <Prompt text={`grep -r "#${tag}" writing/`} />
+  <h1>#{tag}</h1>
+  <p style="display:flex; gap:7px; flex-wrap:wrap; margin:16px 0 20px;">
+    <a class="pill" href="/writing">all</a>
+    {tags.sort().map((t) => <a class={`pill${t === tag ? ' on' : ''}`} href={`/writing/tags/${t}`}>{t}</a>)}
+  </p>
+  <div class="rows">
+    {items.map((item) => <PostRow item={item} showDesc />)}
+  </div>
+</Base>

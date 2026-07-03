@@ -1,0 +1,23 @@
+---
+import { getCollection } from 'astro:content';
+import Base from '../../layouts/Base.astro';
+import Prompt from '../../components/Prompt.astro';
+import PostRow from '../../components/PostRow.astro';
+import { buildFeed } from '../../lib/feed';
+
+const posts = await getCollection('posts', ({ data }) => import.meta.env.PROD ? !data.draft : true);
+const external = await getCollection('external');
+const feed = buildFeed(posts, external);
+const tags = [...new Set(feed.flatMap((f) => f.tags))].sort();
+---
+<Base title="Writing — John Soh" description="All articles by John Soh — on this site and around the web.">
+  <Prompt text="cat writing/*" />
+  <h1>Writing</h1>
+  <p style="display:flex; gap:7px; flex-wrap:wrap; margin:16px 0 20px;">
+    <span class="pill on">all</span>
+    {tags.map((t) => <a class="pill" href={`/writing/tags/${t}`}>{t}</a>)}
+  </p>
+  <div class="rows">
+    {feed.map((item) => <PostRow item={item} showDesc />)}
+  </div>
+</Base>
