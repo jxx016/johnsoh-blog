@@ -9,12 +9,13 @@ const posts = await getCollection('posts', ({ data }) => import.meta.env.PROD ? 
 const external = await getCollection('external');
 const feed = buildFeed(posts, external).slice(0, 5);
 ---
-<Base title="John Soh — devrel engineer" description="I help developers build with agent commerce protocols. Writing, talks, and projects.">
+<Base title="John Soh — senior devrel + AI engineer" description="Senior DevRel and AI engineer at Virtuals Protocol, working on the Agent Commerce Protocol. Writing, talks, and projects.">
   <Prompt text="whoami" />
-  <h1>John Soh — developer relations engineer</h1>
+  <h1>John Soh — senior devrel + AI engineer</h1>
   <p style="color:var(--dim); max-width:52ch; margin-top:10px;">
-    I help developers build with agent commerce protocols. I write about APIs,
-    SDKs, and making developer tools people actually enjoy.
+    I'm a senior DevRel engineer at Virtuals Protocol, where I build the
+    developer community — and the AI systems — behind the Agent Commerce
+    Protocol. Part developer advocate, part AI engineer.
   </p>
   <p style="margin:20px 0 0; display:flex; gap:16px; align-items:center;">
     <a class="btn" href="/writing">read my writing</a>
