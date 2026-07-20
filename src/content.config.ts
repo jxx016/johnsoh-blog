@@ -1,9 +1,17 @@
 import { defineCollection, z } from 'astro:content';
 import { glob, file } from 'astro/loaders';
 
+// url accepts an absolute URL (R2 bucket, YouTube) or a site-relative path
+// (e.g. /media/talks/x.mp4) so self-hosted video works in dev before R2 exists.
+const assetUrl = z
+  .string()
+  .refine((s) => /^https?:\/\//.test(s) || s.startsWith('/'), {
+    message: 'must be an absolute URL or a site-relative path starting with /'
+  });
+
 const video = z.object({
   type: z.enum(['youtube', 'r2']).default('r2'),
-  url: z.string().url(),
+  url: assetUrl,
   poster: z.string().optional()
 });
 

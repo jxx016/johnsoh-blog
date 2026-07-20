@@ -1,17 +1,9 @@
-- id: agents-that-buy
-  title: "Agents that buy things: a live demo"
-  event: "DevCon SEA"
-  date: 2026-03-20
-  description: "Live demo of an agent completing a real purchase end to end."
-  video:
-    type: youtube
-    url: "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
-  slidesUrl: "https://speakerdeck.com/johnsoh/agents-that-buy"
-- id: docs-devs-dont-hate
-  title: "Docs developers don't hate"
-  event: "API World"
-  date: 2025-11-05
+- id: virtuals-sdk-walkthrough
+  title: "Building buyer and seller agents with the Virtuals SDK"
+  event: "Screencast"
+  date: 2026-01-08
+  description: "A hands-on walkthrough of the Agent Commerce Protocol SDK: building the buyer and seller agents and initiating a job end to end."
   video:
     type: r2
-    url: "https://media.johnsoh.dev/talks/docs-devs-dont-hate.mp4"
-    poster: "https://media.johnsoh.dev/talks/docs-devs-dont-hate.jpg"
+    url: "/media/talks/virtuals-talk.mp4"
+    poster: "/media/talks/virtuals-talk.jpg"
