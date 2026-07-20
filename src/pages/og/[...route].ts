@@ -4,7 +4,7 @@ import { OGImageRoute } from 'astro-og-canvas';
 const posts = await getCollection('posts', ({ data }) => !data.draft);
 
 const pages = Object.fromEntries([
-  ['site', { title: 'John Soh', description: 'devrel engineer — writing, talks, projects' }],
+  ['site', { title: 'John Soh', description: 'devrel engineer · writing, talks, projects' }],
   ...posts.map((post) => [
     `writing/${post.id}`,
     { title: post.data.title, description: post.data.description }

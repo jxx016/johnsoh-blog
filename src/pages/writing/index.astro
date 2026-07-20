@@ -10,7 +10,7 @@ const external = await getCollection('external');
 const feed = buildFeed(posts, external);
 const tags = [...new Set(feed.flatMap((f) => f.tags))].sort();
 ---
-<Base title="Writing — John Soh" description="All articles by John Soh — on this site and around the web.">
+<Base title="Writing · John Soh" description="All articles by John Soh, on this site and around the web.">
   <Prompt text="cat writing/*" />
   <h1>Writing</h1>
   <p style="display:flex; gap:7px; flex-wrap:wrap; margin:16px 0 20px;">

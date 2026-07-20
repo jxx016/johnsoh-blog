@@ -12,17 +12,17 @@ Here's everything I found that actually works.
 
 ## What Makes OpenClaw's Memory Worth Using Well
 
-Before getting into the tips, it's worth appreciating what OpenClaw actually gives you — because the design is surprisingly clever.
+Before getting into the tips, it's worth appreciating what OpenClaw actually gives you, because the design is surprisingly clever.
 
 Most agent frameworks store memory in a database or vector store. OpenClaw stores it as plain Markdown files in the agent workspace (default: `~/.openclaw/workspace`). No proprietary format. No database to manage. Just `.md` files you can open in any text editor, diff in a PR, or version-control with Git.
 
-The system has two layers. MEMORY.md is your agent's long-term memory: curated facts, identity, preferences. It gets loaded into the system prompt automatically at the start of every session. Think of it as the agent's "who I am and what I know" file. Then there are daily logs at `memory/YYYY-MM-DD.md` — append-only files for running context. OpenClaw auto-loads today's and yesterday's logs at session start. Everything older stays on disk.
+The system has two layers. MEMORY.md is your agent's long-term memory: curated facts, identity, preferences. It gets loaded into the system prompt automatically at the start of every session. Think of it as the agent's "who I am and what I know" file. Then there are daily logs at `memory/YYYY-MM-DD.md`, append-only files for running context. OpenClaw auto-loads today's and yesterday's logs at session start. Everything older stays on disk.
 
-Something interesting is that on top of these files, OpenClaw builds a semantic vector index across all your memory Markdown. When the agent calls `memory_search`, it doesn't load entire files — it returns small, relevant snippets (~700 characters) that match the query semantically. So you can have months of daily logs on disk, and the agent only pulls in what it actually needs for the current task.
+Something interesting is that on top of these files, OpenClaw builds a semantic vector index across all your memory Markdown. When the agent calls `memory_search`, it doesn't load entire files, it returns small, relevant snippets (~700 characters) that match the query semantically. So you can have months of daily logs on disk, and the agent only pulls in what it actually needs for the current task.
 
 And there's a safety net: auto-compaction with memory flush. When a session approaches context limits, OpenClaw silently triggers a turn that reminds the model to write anything important to disk before the context gets compressed. You don't lose insights just because a conversation ran long.
 
-The bottom line: OpenClaw gives you persistent, searchable, human-readable memory with zero infrastructure. The question isn't whether to use it — it's how to use it well for agents that handle structured, repetitive workloads.
+The bottom line: OpenClaw gives you persistent, searchable, human-readable memory with zero infrastructure. The question isn't whether to use it, it's how to use it well for agents that handle structured, repetitive workloads.
 
 For the full technical deep-dive, see the official docs: [docs.openclaw.ai/concepts/memory](https://docs.openclaw.ai/concepts/memory)
 
@@ -32,7 +32,7 @@ OpenClaw's memory has a critical distinction that trips people up: storage vs. i
 
 Everything you write to Markdown files is stored on disk and searchable via `memory_search`. But only two things are automatically injected into your agent's context window every session: `MEMORY.md` and the last two days of daily logs. Everything else sits on disk until `memory_search` pulls in a relevant snippet.
 
-This means: write everything, but be intentional about what gets auto-loaded. Your agent can have gigabytes of history on disk without burning a single extra token — as long as that history lives in the right files.
+This means: write everything, but be intentional about what gets auto-loaded. Your agent can have gigabytes of history on disk without burning a single extra token, as long as that history lives in the right files.
 
 ## How I Structure My Workspace
 
@@ -62,8 +62,8 @@ This is the folder structure I use. It's opinionated, and it works.
 
 Two design principles drive this layout:
 
-- **Namespace by domain.** Don't put everything in one file. Separate company context, integrations, workflows, and team info into their own files. This keeps retrieval focused — when your agent searches for "Stripe webhook setup," it doesn't have to wade through your agent's strategy rules to find it.
-- **Progressive disclosure.** `SKILL.md` acts as a summary entry point — a table of contents for the agent's capabilities. Detailed scripts and references live underneath in subdirectories. The agent loads the summary first and only pulls in detail when it needs it. This keeps your context lean by default and deep when required.
+- **Namespace by domain.** Don't put everything in one file. Separate company context, integrations, workflows, and team info into their own files. This keeps retrieval focused: when your agent searches for "Stripe webhook setup," it doesn't have to wade through your agent's strategy rules to find it.
+- **Progressive disclosure.** `SKILL.md` acts as a summary entry point, a table of contents for the agent's capabilities. Detailed scripts and references live underneath in subdirectories. The agent loads the summary first and only pulls in detail when it needs it. This keeps your context lean by default and deep when required.
 
 ## Four Rules I Follow
 
@@ -72,23 +72,23 @@ Two design principles drive this layout:
 After each job completes, write a structured entry to a daily file in `memory/jobs/`. Same format every time:
 
 ```plaintext
-Job abc123 — 2026-02-18 14:30 UTC
+Job abc123 - 2026-02-18 14:30 UTC
 Offering: Market Research Brief
 Buyer: 0x1234...abcd
 Request: Competitive analysis of AI agent frameworks, 3 competitors
-Result: SUCCESS — delivered 2,400-word brief with 12 sources
+Result: SUCCESS - delivered 2,400-word brief with 12 sources
 Duration: 45s
 ```
 
-Consistent formatting matters more than you'd think. OpenClaw's `memory_search` chunks files into ~400-token blocks for its semantic index. Clean, predictable structure means each chunk maps to exactly one job — so search results are precise instead of noisy.
+Consistent formatting matters more than you'd think. OpenClaw's `memory_search` chunks files into ~400-token blocks for its semantic index. Clean, predictable structure means each chunk maps to exactly one job, so search results are precise instead of noisy.
 
-This works for any type of agent — trade execution, research delivery, content creation, customer support. The format stays the same; only the details change.
+This works for any type of agent: trade execution, research delivery, content creation, customer support. The format stays the same; only the details change.
 
 You can tell your agent to do this in `MEMORY.md` with a simple instruction: "After every job, append a structured log entry to memory/jobs/ with the date, offering, buyer, request, result, and duration."
 
 ### 2. Separate current state from history
 
-Job logs record what happened. But if your agent needs to know what's true right now — active tasks, running totals, pending deliverables — it shouldn't have to search through 50 log entries to figure that out. A useful framing from the community: search is for recall, not for tracking current state. Keep current state in a dedicated file that gets overwritten in place.
+Job logs record what happened. But if your agent needs to know what's true right now (active tasks, running totals, pending deliverables), it shouldn't have to search through 50 log entries to figure that out. A useful framing from the community: search is for recall, not for tracking current state. Keep current state in a dedicated file that gets overwritten in place.
 
 I use a dedicated `memory/state.md` that gets overwritten (not appended) after each job. It always reflects the current truth:
 
@@ -107,18 +107,18 @@ Repeat buyers: 8
 Active since: 2026-02-01
 ```
 
-Because `state.md` is a non-dated file, OpenClaw treats it as evergreen — it won't fade in relevance over time the way dated daily logs do if you enable temporal decay. Your current state always outranks last month's history in search results.
+Because `state.md` is a non-dated file, OpenClaw treats it as evergreen. It won't fade in relevance over time the way dated daily logs do if you enable temporal decay. Your current state always outranks last month's history in search results.
 
 ### 3. Document failures, not just successes
 
-This is the one most people skip. When a job fails — bad input, timeout, rejected by the buyer — log why it failed in `memory/failures.md`. Not just "Job xyz failed," but the context: what was the request, what went wrong, what should the agent do differently next time.
+This is the one most people skip. When a job fails (bad input, timeout, rejected by the buyer), log why it failed in `memory/failures.md`. Not just "Job xyz failed," but the context: what was the request, what went wrong, what should the agent do differently next time.
 
 ```plaintext
-2026-02-17 — Delivery rejected
+2026-02-17 - Delivery rejected
 Job: def456
 Offering: Content Writing
 Request: "Write a technical blog post on Kubernetes networking"
-Error: Buyer rejected — content was too surface-level, lacked code examples
+Error: Buyer rejected - content was too surface-level, lacked code examples
 Lesson: For technical content jobs, always include working code snippets
 and reference official docs. Ask for target audience
 (beginner/intermediate/advanced) upfront.
@@ -140,7 +140,7 @@ After Every Job:
 → If you learned something new about a buyer's preferences, note it in memory/buyers.md
 ```
 
-This turns memory from a static reference into a living system. The agent doesn't just have a history — it actively builds one.
+This turns memory from a static reference into a living system. The agent doesn't just have a history, it actively builds one.
 
 ## Three Best Practices That Made a Real Difference
 
@@ -148,15 +148,15 @@ Beyond the structural rules above, these three things moved the needle the most 
 
 ### Keep MEMORY.md under 2,000 words
 
-This is the single most common mistake I see. `MEMORY.md` gets injected into the system prompt on every single session — every request, every job, every heartbeat. A 5,000-word `MEMORY.md` burns ~6,250 tokens before your agent even starts thinking about the actual task. And that cost compounds — those tokens get re-sent with every single message in the conversation. A 10K-token memory file across a 10-message exchange means 100K tokens burned on memory alone.
+This is the single most common mistake I see. `MEMORY.md` gets injected into the system prompt on every single session: every request, every job, every heartbeat. A 5,000-word `MEMORY.md` burns ~6,250 tokens before your agent even starts thinking about the actual task. And that cost compounds, those tokens get re-sent with every single message in the conversation. A 10K-token memory file across a 10-message exchange means 100K tokens burned on memory alone.
 
-The rule of thumb: if it doesn't define who the agent is, it doesn't belong in `MEMORY.md`. Strategy rules, identity, core constraints — yes. Job history, API documentation, workflow details — no. Those belong in domain-specific files under `memory/` or `references/` where `memory_search` can fetch them on demand.
+The rule of thumb: if it doesn't define who the agent is, it doesn't belong in `MEMORY.md`. Strategy rules, identity, core constraints: yes. Job history, API documentation, workflow details: no. Those belong in domain-specific files under `memory/` or `references/` where `memory_search` can fetch them on demand.
 
 Think of `MEMORY.md` as a business card, not a filing cabinet.
 
 ### Enable hybrid search for job-heavy agents
 
-OpenClaw's default memory search uses vector (semantic) matching. This works great for natural language queries like "what research briefs did I deliver last week." But job logs are full of exact identifiers — job IDs, wallet addresses, error codes — and vector search is weak at finding those.
+OpenClaw's default memory search uses vector (semantic) matching. This works great for natural language queries like "what research briefs did I deliver last week." But job logs are full of exact identifiers (job IDs, wallet addresses, error codes), and vector search is weak at finding those.
 
 Hybrid search combines semantic matching with BM25 keyword matching, so your agent can find results both by meaning ("show me recent content jobs") and by exact ID ("status of job abc123"). It's one config toggle away:
 
@@ -164,13 +164,13 @@ Hybrid search combines semantic matching with BM25 keyword matching, so your age
 memorySearch.query.hybrid.enabled: true
 ```
 
-While you're in the config, consider enabling temporal decay (`halfLifeDays: 30`). This makes recent logs rank higher than old ones — a log from last month scores at 50% of its original relevance, while today's logs rank at 100%. Non-dated files like `state.md` and `MEMORY.md` are exempt, so your current state always outranks stale history.
+While you're in the config, consider enabling temporal decay (`halfLifeDays: 30`). This makes recent logs rank higher than old ones: a log from last month scores at 50% of its original relevance, while today's logs rank at 100%. Non-dated files like `state.md` and `MEMORY.md` are exempt, so your current state always outranks stale history.
 
 Full config reference in the OpenClaw docs: [docs.openclaw.ai/concepts/memory](https://docs.openclaw.ai/concepts/memory)
 
 ### Tell your agent HOW to use memory
 
-This one sounds obvious, but it's the difference between an agent that has memory and an agent that uses it well. The model won't intuit the right memory behavior — you need to be prescriptive.
+This one sounds obvious, but it's the difference between an agent that has memory and an agent that uses it well. The model won't intuit the right memory behavior, you need to be prescriptive.
 
 In `MEMORY.md`, add explicit instructions for when and how the agent should read and write memory:
 
@@ -188,7 +188,7 @@ The agent follows instructions better than it follows intuition. Being explicit 
 
 ## Managing Memory Through Telegram
 
-Most people interact with their OpenClaw agent through Telegram (or WhatsApp, or Discord) — not by SSH-ing into a server and editing Markdown files. The good news: your memory setup works the same way regardless of how you talk to your agent.
+Most people interact with their OpenClaw agent through Telegram (or WhatsApp, or Discord), not by SSH-ing into a server and editing Markdown files. The good news: your memory setup works the same way regardless of how you talk to your agent.
 
 Once you've set up your workspace structure and added the Memory Protocol to `MEMORY.md`, your agent follows those instructions whether it's handling an ACP job or responding to you in a Telegram DM.
 
@@ -198,20 +198,20 @@ You can manage memory conversationally:
 - "What do you know about buyer 0x1234?" → The agent runs `memory_search` behind the scenes and returns what it finds.
 - "What jobs failed this week?" → The agent searches `memory/failures.md` and gives you a summary.
 
-This is actually the fastest way to test your memory setup. After configuring your workspace, message your agent on Telegram. Ask it to remember something. Start a new session. Ask it to recall what you told it. If it comes back — your memory is working. If it doesn't — check that the agent actually wrote it to a file and not just held it in the conversation context.
+This is actually the fastest way to test your memory setup. After configuring your workspace, message your agent on Telegram. Ask it to remember something. Start a new session. Ask it to recall what you told it. If it comes back, your memory is working. If it doesn't, check that the agent actually wrote it to a file and not just held it in the conversation context.
 
-One gotcha that comes up constantly in the community: the agent will often say "I'll remember that" without actually writing anything to disk. It acknowledged your request in conversation, but the memory never made it to a file. Always verify by asking the agent to show you the file it wrote to, or check the workspace files directly. Memory only persists if it hits disk — everything else vanishes when the session ends.
+One gotcha that comes up constantly in the community: the agent will often say "I'll remember that" without actually writing anything to disk. It acknowledged your request in conversation, but the memory never made it to a file. Always verify by asking the agent to show you the file it wrote to, or check the workspace files directly. Memory only persists if it hits disk, everything else vanishes when the session ends.
 
 ## Should You Keep All Your Job Data in Memory?
 
 This question comes up constantly. The answer:
 
-- **Keep all job data on disk — yes.** Disk is cheap. Write every job to `memory/jobs/`.
-- **Keep all job data in active context — no.** That's how you blow your context window.
+- **Keep all job data on disk: yes.** Disk is cheap. Write every job to `memory/jobs/`.
+- **Keep all job data in active context: no.** That's how you blow your context window.
 
 Only `MEMORY.md` and the last two days of daily logs are auto-injected. Everything else is retrieved on-demand by `memory_search`, which returns small snippets (~700 chars) instead of loading full files. You get the recall without the token cost.
 
-For high-volume agents (50+ jobs/day), consolidation is essential. One pattern that works well: set up a nightly cron that reviews the day's logs and extracts anything worth keeping into curated files — key lessons, recurring buyer preferences, performance trends. Then run a weekly cron to roll up daily summaries into `memory/weekly/`. This prevents MEMORY.md from becoming a junk drawer and gives your agent a fast overview of the past without wading through hundreds of raw entries.
+For high-volume agents (50+ jobs/day), consolidation is essential. One pattern that works well: set up a nightly cron that reviews the day's logs and extracts anything worth keeping into curated files: key lessons, recurring buyer preferences, performance trends. Then run a weekly cron to roll up daily summaries into `memory/weekly/`. This prevents MEMORY.md from becoming a junk drawer and gives your agent a fast overview of the past without wading through hundreds of raw entries.
 
 ## When Files Aren't Enough
 
@@ -226,7 +226,7 @@ acp sell resource init my_state_backend
 acp sell resource create my_state_backend
 ```
 
-This lets you back your agent's memory with a real database, a hosted API, or any external service — while still using Markdown files as the local fast layer. Think of it as a progression:
+This lets you back your agent's memory with a real database, a hosted API, or any external service, while still using Markdown files as the local fast layer. Think of it as a progression:
 
 - **Getting started** → Markdown files in the workspace (what this guide covers)
 - **Growing** → Structured files + weekly consolidation + search tuning

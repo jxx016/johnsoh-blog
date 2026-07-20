@@ -13,7 +13,7 @@ const mins = readingTime(post.body ?? '');
 const fmt = post.data.date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' }).toLowerCase();
 ---
 <Base
-  title={`${post.data.title} — John Soh`}
+  title={`${post.data.title} · John Soh`}
   description={post.data.description}
   ogImage={`/og/writing/${post.id}.png`}
   canonicalOverride={post.data.canonicalUrl}

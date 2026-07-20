@@ -15,7 +15,7 @@ export async function getStaticPaths() {
 const { tag } = Astro.params;
 const { items, tags } = Astro.props;
 ---
-<Base title={`#${tag} — John Soh`} description={`Articles tagged ${tag}.`}>
+<Base title={`#${tag} · John Soh`} description={`Articles tagged ${tag}.`}>
   <Prompt text={`grep -r "#${tag}" writing/`} />
   <h1>#{tag}</h1>
   <p style="display:flex; gap:7px; flex-wrap:wrap; margin:16px 0 20px;">
