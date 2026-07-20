@@ -7,24 +7,41 @@ import { buildFeed } from '../lib/feed';
 
 const posts = await getCollection('posts', ({ data }) => import.meta.env.PROD ? !data.draft : true);
 const external = await getCollection('external');
-const feed = buildFeed(posts, external).slice(0, 5);
+const feed = buildFeed(posts, external).slice(0, 3);
+
+const dirs = [
+  { name: 'writing', desc: 'essays on AI agents, crypto, and memory' },
+  { name: 'talks', desc: 'talk videos and photos from Base and EthDenver' },
+  { name: 'projects', desc: 'AdAgent, a RAG assistant, and an agent evaluator' }
+];
 ---
-<Base title="John Soh, senior devrel + AI engineer" description="Senior DevRel and AI engineer at Virtuals Protocol, working on the Agent Commerce Protocol. Writing, talks, and projects.">
+<Base
+  title="John Soh, senior devrel + AI engineer"
+  description="Senior DevRel and AI engineer at Virtuals Protocol. Writing, talk videos, event photos, and projects.">
   <Prompt text="whoami" />
   <h1>John Soh, senior devrel + AI engineer</h1>
-  <p style="color:var(--dim); max-width:52ch; margin-top:10px;">
-    I'm a senior DevRel engineer at Virtuals Protocol. I build the developer
-    community behind the Agent Commerce Protocol, and the AI systems that power
-    it. Part developer advocate, part AI engineer.
+  <p style="color:var(--dim); max-width:46ch; margin-top:10px;">
+    I build AI agents and the developer community around them at Virtuals Protocol.
   </p>
-  <p style="margin:20px 0 0; display:flex; gap:16px; align-items:center;">
-    <a class="btn" href="/writing">read my writing</a>
-    <span class="mono" style="font-size:13px; color:var(--dim);">
-      <a href="https://github.com/jxx016">github</a> ·
-      <a href="https://www.linkedin.com/in/johnxiangrhongsoh/">linkedin</a>
-    </span>
+  <p class="mono" style="font-size:13px; color:var(--dim); margin-top:14px;">
+    <a href="https://github.com/jxx016">github</a> ·
+    <a href="https://www.linkedin.com/in/johnxiangrhongsoh/">linkedin</a> ·
+    <a href="/rss.xml">rss</a>
   </p>
-  <div style="margin-top:44px;">
+
+  <div style="margin-top:40px;">
+    <Prompt text="ls ~" />
+    <div class="rows">
+      {dirs.map((d) => (
+        <a class="row" href={`/${d.name}`} style="display:block;">
+          <span class="mono" style="color:var(--accent); display:inline-block; width:96px;">{d.name}/</span>
+          <span style="color:var(--dim); font-size:14px;">{d.desc}</span>
+        </a>
+      ))}
+    </div>
+  </div>
+
+  <div style="margin-top:40px;">
     <Prompt text="ls writing/ --recent" />
     <div class="rows">
       {feed.map((item) => <PostRow item={item} />)}
