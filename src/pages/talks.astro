@@ -7,11 +7,32 @@ import TalkCard from '../components/TalkCard.astro';
 const talks = (await getCollection('talks')).sort(
   (a, b) => b.data.date.getTime() - a.data.date.getTime()
 );
+
+const photos = [
+  { src: '/images/speaking/presenting.jpg', alt: 'John presenting and annotating code live on the big screen at a Virtuals session' },
+  { src: '/images/speaking/denver-hackathon.jpg', alt: 'John presenting to a full room of developers at a hackathon' },
+  { src: '/images/speaking/base-hackathon.jpg', alt: 'Developers gathered around a laptop during a hands-on demo' },
+  { src: '/images/speaking/workshop-room.jpg', alt: 'John and a colleague presenting to a room of developers at the office' }
+];
 ---
-<Base title="Talks — John Soh" description="Conference and meetup talks by John Soh, with video and slides.">
+<Base title="Talks — John Soh" description="Talks, workshops, and demos by John Soh, with photos and recordings.">
   <Prompt text="ls talks/" />
   <h1>Talks</h1>
-  <div style="margin-top:12px; border-top:1px solid var(--line);">
+
+  <p class="mono" style="font-size:12px; color:var(--dim); margin:18px 0 8px;">speaking and workshops</p>
+  <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:6px;">
+    {photos.map((p) => (
+      <img
+        src={p.src}
+        alt={p.alt}
+        loading="lazy"
+        style="height:190px; width:auto; flex:0 0 auto; border:1px solid var(--line); border-radius:8px; object-fit:cover;"
+      />
+    ))}
+  </div>
+
+  <p class="mono" style="font-size:12px; color:var(--dim); margin:32px 0 0;">recordings</p>
+  <div style="margin-top:8px; border-top:1px solid var(--line);">
     {talks.map((talk) => <TalkCard talk={talk} />)}
   </div>
 </Base>
