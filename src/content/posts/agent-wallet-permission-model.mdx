@@ -1,0 +1,76 @@
+---
+title: "What a Sane Spending Policy for Agent Wallets Actually Looks Like"
+date: 2026-07-21
+description: "Once an agent controls its own wallet, the hard problem isn't whether it can pay. It's how you stop it paying for the wrong thing without putting a human back in the loop. Here's the permission model I'd actually ship."
+tags: ["ai-agents", "crypto", "payments"]
+draft: true
+---
+
+I argued in a previous post that a wallet the agent controls end to end is the thing that turns a reasoning loop into something that can act in the world. That's the exciting half. This is the half nobody wants to write about: the moment you hand an agent unmediated financial agency, you've also handed it the ability to be catastrophically wrong with real money, fast.
+
+The instinct is to bolt a human approval step back on. That instinct is wrong, and it's worth being precise about why.
+
+## The Approval Queue Is Not a Permission Model
+
+The whole reason a crypto wallet works for an agent is that nothing sits between a signed transaction and its execution. Put a human approval queue in front of it and you've rebuilt the exact bottleneck the wallet was supposed to remove. Your "autonomous" agent is now a chatbot that drafts spend requests and waits.
+
+There's a subtler failure too. A human reviewer who sees forty approval requests an hour stops reading them. Rubber-stamping is the default state of any high-volume approval queue, so the control you think you have is mostly theater. A reviewer who approves everything is worse than no reviewer, because it looks like oversight while providing none.
+
+The right move is to stop thinking about permission as an event that happens per transaction, and start thinking about it as a boundary the agent operates inside. You don't approve each spend. You define the space of spends the agent is allowed to make, once, in a place the agent cannot edit.
+
+## Put the Limits Where the Agent Can't Reach Them
+
+Here's the load-bearing idea: the permission layer has to live somewhere the agent has no write access.
+
+If your spending rules live in the agent's prompt, the agent can talk itself out of them. If they live in your application code, a compromised or jailbroken agent that can call arbitrary tools can route around them. The only place a limit is actually a limit is on the other side of the signature: in a smart-contract wallet that enforces the rules on-chain, before the transaction settles.
+
+This is the difference between "the agent is instructed not to spend more than 50 USDC a day" and "the agent cannot spend more than 50 USDC a day." The first is a suggestion. The second is physics. Design for the second.
+
+## The Four Controls That Actually Matter
+
+You don't need an elaborate policy language. Four controls cover almost every real case:
+
+1. **A per-transaction cap.** The single most important limit. It bounds the blast radius of any one bad decision. Set it to the largest legitimate single spend the agent will ever make, and not a cent higher.
+2. **A rolling window cap, not a calendar-day cap.** "Max 50 USDC per day" resets at midnight, which means an agent can spend 50 at 23:59 and 50 again at 00:01. A rolling 24-hour window closes that gap. Same idea for hourly limits on high-frequency agents.
+3. **A counterparty allowlist.** Most agents only ever need to pay a known, small set of addresses: specific data providers, a sub-agent registry, a settlement contract. Allowlisting those turns "the agent got tricked into paying an attacker" from a catastrophe into a rejected transaction.
+4. **An escalation threshold.** Above some amount, fall back to a human. This is not a contradiction of everything above. It's acknowledging that a 5 USDC mistake is a rounding error and a 5,000 USDC mistake is an incident, and the two deserve different handling.
+
+Notice what's missing: intent checking, semantic review, "is this a good idea" evaluation. Those belong in the agent's own reasoning, not the permission layer. The permission layer's job is to be dumb, fast, and impossible to argue with.
+
+## A Policy That Reads Like Code, Because It Is
+
+Here's what a real policy looks like once you stop hand-waving:
+
+```plaintext
+Wallet Policy - research-agent-01
+Per-transaction cap:      5 USDC
+Rolling 24h cap:          50 USDC
+Counterparties:           allowlist only (data-providers, sub-agent-registry)
+Escalation threshold:     > 100 USDC routes to human approval
+Key scope:                this task class only, not the master treasury
+```
+
+The specific numbers are yours to set. The point is where they live: encoded in the wallet contract, not in a config file the agent can read and rationalize against, and not in an inbox someone has to be awake to check. The agent can plan, decide, and execute all night inside those bounds without anyone watching, and the worst case is bounded by arithmetic.
+
+## Failure Modes to Design Against
+
+A few things that will bite you if you only think about the happy path:
+
+- **Death by a thousand small transactions.** A per-transaction cap alone is useless if the agent can make a thousand transactions. This is exactly why the rolling window cap is non-negotiable, not optional.
+- **Counterparty spoofing.** If your allowlist is checked in application code instead of the contract, an agent that can be prompted into calling a different address defeats it. Enforce the allowlist on-chain.
+- **The key is the whole ballgame.** Every control above assumes the private key is safe. The moment the key leaks, none of it matters. Treat the key like the production credential it now is: scoped per task class, rotated, never in a prompt, never in a log.
+- **Silent policy drift.** Someone will eventually raise a cap "just for this one job" and forget to lower it. Treat policy changes like deploys: reviewed, logged, reverted on a schedule.
+
+## What I'd Actually Ship
+
+If I were standing up an agent with a wallet tomorrow, the checklist is short:
+
+1. Separate wallets per task class. Never one master treasury the agent taps for everything.
+2. Enforce the per-transaction and rolling-window caps in the contract, not the code.
+3. Allowlist counterparties on-chain.
+4. Set an escalation threshold and actually wire the fallback, don't just log and continue.
+5. Log every transaction the agent signs the same way you log every other tool call, because that's what it is.
+
+The interesting work of the next year isn't giving agents wallets. That part is basically solved. It's designing permission models that are strict enough to be safe and loose enough that the agent is still actually autonomous. Get that boundary right and the wallet stops being a liability and starts being the thing that lets your agent do real work unattended.
+
+Building agent wallets or thinking about spend controls? I'd love to compare notes, find me on the Virtuals Protocol community.
