@@ -5,7 +5,7 @@
   description: "A walk through ACP concepts and architecture: the Discovery phase, the x402 payment flow, and subscriptions, using a yield-farming example."
   video:
     type: r2
-    url: "/media/talks/x402-acp-subs.mp4"
+    url: "https://pub-4bcf2a7eb8df4c648552a14503c2e18a.r2.dev/x402-acp-subs.mp4"
     poster: "/media/talks/x402-acp-subs.jpg"
 - id: virtuals-sdk-walkthrough
   title: "Building buyer and seller agents with the Virtuals SDK"
@@ -14,5 +14,5 @@
   description: "A hands-on walkthrough of the Agent Commerce Protocol SDK: building the buyer and seller agents and initiating a job end to end."
   video:
     type: r2
-    url: "/media/talks/virtuals-talk.mp4"
+    url: "https://pub-4bcf2a7eb8df4c648552a14503c2e18a.r2.dev/final-version-with-transcriptmp4.mp4"
     poster: "/media/talks/virtuals-talk.jpg"
