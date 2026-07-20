@@ -9,25 +9,59 @@ const talks = (await getCollection('talks')).sort(
 );
 
 const photos = [
-  { src: '/images/speaking/presenting.jpg', alt: 'John presenting and annotating code live on the big screen at a Virtuals session' },
-  { src: '/images/speaking/denver-hackathon.jpg', alt: 'John presenting to a full room of developers at a hackathon' },
-  { src: '/images/speaking/base-hackathon.jpg', alt: 'Developers gathered around a laptop during a hands-on demo' },
-  { src: '/images/speaking/workshop-room.jpg', alt: 'John and a colleague presenting to a room of developers at the office' }
+  {
+    src: '/images/speaking/presenting.jpg',
+    alt: 'John presenting and annotating code live on the big screen with the DevRel lead',
+    event: 'Base hackathon · SF',
+    date: 'feb 2025',
+    caption: 'Presented a live product demo with our DevRel lead, then helped judge the hackathon.'
+  },
+  {
+    src: '/images/speaking/base-hackathon.jpg',
+    alt: 'John and developers gathered around a laptop during a hands-on session',
+    event: 'Base hackathon · SF',
+    date: 'feb 2025',
+    caption: 'Builder outreach: walking participants through the SDK and staying late to answer questions.'
+  },
+  {
+    src: '/images/speaking/workshop-room.jpg',
+    alt: 'A room of developers at the AI-agent hackathon in the SF office',
+    event: 'Base hackathon · SF',
+    date: 'feb 2025',
+    caption: 'The AI-agent hackathon session at the San Francisco office.'
+  },
+  {
+    src: '/images/speaking/denver-hackathon.jpg',
+    alt: 'John demoing to a full room of builders at the Sozu House hackathon in Denver',
+    event: 'EthDenver · Sozu House',
+    date: 'apr 2025',
+    caption: 'Demoed the GAME product to ~50 builders, ran a Q&A, and stayed to help people onboard.',
+    link: 'https://x.com/sozuhaus/status/1895505690598502803'
+  }
 ];
 ---
 <Base title="Talks — John Soh" description="Talks, workshops, and demos by John Soh, with photos and recordings.">
   <Prompt text="ls talks/" />
   <h1>Talks</h1>
 
-  <p class="mono" style="font-size:12px; color:var(--dim); margin:18px 0 8px;">speaking and workshops</p>
-  <div style="display:flex; gap:10px; overflow-x:auto; padding-bottom:6px;">
+  <p class="mono" style="font-size:12px; color:var(--dim); margin:18px 0 10px;">speaking and workshops</p>
+  <div style="display:flex; gap:14px; overflow-x:auto; padding-bottom:8px;">
     {photos.map((p) => (
-      <img
-        src={p.src}
-        alt={p.alt}
-        loading="lazy"
-        style="height:190px; width:auto; flex:0 0 auto; border:1px solid var(--line); border-radius:8px; object-fit:cover;"
-      />
+      <figure style="flex:0 0 260px; margin:0;">
+        <img
+          src={p.src}
+          alt={p.alt}
+          loading="lazy"
+          style="width:260px; height:165px; object-fit:cover; border:1px solid var(--line); border-radius:8px; display:block;"
+        />
+        <figcaption style="margin-top:8px;">
+          <p class="mono" style="font-size:11px; color:var(--accent); margin:0;">{p.event} · {p.date}</p>
+          <p style="font-size:12.5px; color:var(--dim); margin:3px 0 0; line-height:1.5;">
+            {p.caption}
+            {p.link && <> <a href={p.link} style="color:var(--ext);">recap ↗</a></>}
+          </p>
+        </figcaption>
+      </figure>
     ))}
   </div>
 
