@@ -1,12 +1,9 @@
-- id: acp-quickstart-kit
-  name: "acp-quickstart-kit"
-  description: "Starter templates for agent commerce integrations"
-  tags: ["typescript", "sdk"]
-  repoUrl: "https://github.com/johnsoh/acp-quickstart-kit"
-  demoUrl: "https://acp-quickstart.pages.dev"
+- id: rag-telegram-support
+  name: "RAG-powered Telegram support assistant"
+  description: "End-to-end RAG assistant answering developer questions in Telegram, with hybrid semantic + keyword retrieval, multi-turn memory, and sub-2s responses in production."
+  tags: ["typescript", "langchain", "rag", "openai", "supabase"]
   featured: true
-- id: webhook-inspector
-  name: "webhook-inspector"
-  description: "CLI to replay and debug webhook payloads locally"
-  tags: ["go", "cli"]
-  repoUrl: "https://github.com/johnsoh/webhook-inspector"
+- id: agent-evaluator
+  name: "Agent evaluator for commerce transactions"
+  description: "Autonomous evaluator agent that validates buyer/seller transactions on the Agent Commerce Protocol, with a multi-modal pipeline for images, video, and documents."
+  tags: ["python", "langchain", "gpt-4-vision", "acp"]
