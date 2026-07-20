@@ -1,3 +1,12 @@
+- id: x402-acp-subscriptions
+  title: "x402 payments and ACP subscriptions, explained"
+  event: "Screencast"
+  date: 2026-01-22
+  description: "A walk through ACP concepts and architecture: the Discovery phase, the x402 payment flow, and subscriptions, using a yield-farming example."
+  video:
+    type: r2
+    url: "/media/talks/x402-acp-subs.mp4"
+    poster: "/media/talks/x402-acp-subs.jpg"
 - id: virtuals-sdk-walkthrough
   title: "Building buyer and seller agents with the Virtuals SDK"
   event: "Screencast"
