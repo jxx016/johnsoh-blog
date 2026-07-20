@@ -1,0 +1,54 @@
+---
+title: "When to Use Multiple Agents (and When You're Just Adding Latency)"
+date: 2026-07-23
+description: "Most multi-agent systems are one agent cosplaying as five, paying extra latency and tokens for the costume. Here's how to tell when you actually need multiple agents and when you're just splitting a prompt."
+tags: ["ai-agents", "architecture"]
+draft: true
+---
+
+Multi-agent is the current default answer to "my agent isn't good enough." The reasoning goes: one agent struggles, so give it a team. A planner, a researcher, a critic, a writer, all passing messages around. It feels like architecture. Most of the time it's a more expensive, slower version of the single agent you already had.
+
+I've built both. Here's how I decide.
+
+## Most "Multi-Agent" Systems Are One Agent in a Trench Coat
+
+The tell is simple: if your agents run one after another, each waiting for the last to finish, and they all share the same context, you don't have multiple agents. You have one agent whose prompt you've split across several API calls.
+
+A "planner agent" that hands a plan to an "executor agent" that hands results to a "critic agent" is a pipeline. It's a fine pattern, but calling each stage an agent buys you nothing except more network round-trips, more places for context to get dropped between hops, and a bigger bill. You could have written the same thing as one agent with three instructions in its prompt and it would be faster and cheaper.
+
+Splitting a prompt into "roles" doesn't create agents. It creates prompt sections with extra latency between them.
+
+## What Actually Justifies a Second Agent
+
+There are real reasons to run more than one agent. They have nothing to do with roles and everything to do with isolation:
+
+- **Genuine parallelism.** If three subtasks are truly independent, running them as three concurrent agents is faster in wall-clock time. This is the strongest case, and it's the one people underuse while overusing the "team of roles" case. Fan out, then join.
+- **Different permission scopes.** An agent that can spend from a wallet should not be the same agent that reads untrusted web content. Separating them means a prompt injection in the browsing agent can't reach the spending agent's tools. Isolation is a security boundary, not just an org chart.
+- **Different models for different jobs.** A cheap fast model triaging inputs and routing the hard cases to an expensive model is a real multi-agent win. You're not splitting a task, you're matching each job to the right tool.
+- **Independent failure and retry.** If one subtask is flaky, isolating it means you can retry just that piece without re-running everything. That's easier to reason about when it's a separate agent with a clean boundary.
+
+Notice the theme: every good reason is about isolation. Parallel execution, blast radius, cost tiers, failure domains. None of them are "the task has multiple steps." Multiple steps is a loop, not a team.
+
+## The Question I Actually Ask
+
+Before splitting anything into a second agent, I ask one thing: **what does this agent have that the other one shouldn't?**
+
+If the answer is a different tool set, a different permission scope, a different model, or genuine concurrency, split it. The boundary is real and it's earning its cost.
+
+If the answer is "a different set of instructions" or "a different role," don't. Put the instructions in one agent, give it the tools, and let it loop. You'll ship something faster to build, cheaper to run, and far easier to debug, because there's one place the reasoning happens instead of five places it can get lost in translation.
+
+## The Costs Nobody Prices In
+
+Every agent boundary you add has a bill attached, and it's usually paid at 2am in production:
+
+1. **Latency stacks.** Sequential agents add their round-trips together. What was one call is now four, each waiting on the last.
+2. **Context leaks at every hop.** Every time you pass state between agents, you decide what to include, and you will get it wrong. The receiving agent is missing the one detail it needed, and you won't find out until it does something dumb.
+3. **Debugging multiplies.** One agent has one transcript. Five agents have five transcripts and the interesting bug is always in the handoff between two of them.
+
+## Start With One
+
+My actual default: build it as a single agent with a good tool loop first. Ship that. Only split off a second agent when you hit a concrete wall that isolation solves, real concurrency, a security boundary, a cost tier, an independent failure domain. Let the architecture earn its complexity instead of assuming it up front.
+
+The best multi-agent system is the one where every agent is there for a reason you can name in one sentence. If you can't name the reason, it's not an agent. It's latency with a job title.
+
+Building multi-agent systems, or ripping one back down to a single agent? I'd love to compare notes, find me on the Virtuals Protocol community.

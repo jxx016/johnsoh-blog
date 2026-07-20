@@ -1,0 +1,76 @@
+---
+title: "When Markdown Isn't Enough: Backing Agent Memory With a Real Backend"
+date: 2026-07-22
+description: "Markdown files are the right way to start an agent's memory. Here's the point where they stop being enough, and how to move to a real backend without giving up the fast local layer."
+tags: ["ai-agents", "openclaw", "memory"]
+draft: true
+---
+
+In my last post on OpenClaw memory, I promised a follow-up on what happens when files on a single machine stop cutting it. This is that post.
+
+To be clear up front: Markdown files are the right way to start. They're readable, version-controllable, and they plug straight into OpenClaw's search and compaction. If you're not sure whether you need a backend, you don't. But there's a real threshold where files quietly become the bottleneck, and it's worth knowing the signs before you hit them in production.
+
+## The Three Signs You've Outgrown Files
+
+Files stop being enough for one of three reasons, and it's almost always these:
+
+- **Volume.** Semantic search over a few hundred daily logs is fast. Over tens of thousands, the index rebuilds get slow and your snippets get noisier. High-frequency agents hit this in weeks, not months.
+- **Uptime.** Files live on one machine. If that agent needs 24/7 availability and the box restarts, you want its memory somewhere that survives the restart and isn't mid-write when it happens.
+- **Shared state.** The moment a second service needs to read the agent's state (a dashboard, an analytics job, another agent), files on a single disk become a coordination problem. Two writers to one Markdown file is a race condition waiting to happen.
+
+If none of those apply to you, close this tab and keep using files. If one of them does, read on.
+
+## Don't Replace Files. Add a Layer Under Them.
+
+The mistake is treating this as a migration: rip out the Markdown, move everything to a database. Don't. The files are your fast local layer and your human-readable audit trail, and they're genuinely good at that. What you want is a backend *underneath* them, not instead of them.
+
+The pattern is a fast layer and a durable layer:
+
+- **Fast layer (files):** what the agent reads and writes in the moment. Today's context, the working notes, the stuff semantic search snippets from.
+- **Durable layer (backend):** the source of truth that outlives any single machine. Structured state, queryable job history, anything another service needs.
+
+The agent operates on files. A sync step reconciles them with the backend. You get local speed and durable persistence without the agent ever needing to know a database exists.
+
+## What Actually Belongs in the Backend
+
+Not everything should move down a layer. The split is about access pattern, not importance:
+
+- **Current state → backend.** Active tasks, running totals, anything another service reads. This is the one that most needs to be consistent and queryable.
+- **Job history → backend, if you query it.** If you ever ask "how many content jobs did I run last month" in a dashboard, that's a database query, not a grep. If you only ever recall it semantically, files are fine.
+- **Identity, strategy, rules → stay in files.** `MEMORY.md` is small, changes rarely, and wants to be human-edited. It has no business in a database.
+- **Semantic recall corpus → stays in files.** The whole point of OpenClaw's snippet search is that it works over Markdown. Leave it there.
+
+The rule of thumb: if you'd write a SQL query against it, it belongs in the backend. If you'd read it or search it, it belongs in files.
+
+## Wiring It Up With ACP Resources
+
+OpenClaw's resource system is the clean way to do this. You register an external service as a resource the agent can call, instead of hard-coding a database client into the agent itself:
+
+```plaintext
+acp sell resource init my_state_backend
+acp sell resource create my_state_backend
+```
+
+Now your state backend is a service the agent talks to through a stable interface. Swap PostgreSQL for a hosted API later and the agent doesn't change. This is the same discipline as keeping spend limits in a contract instead of a prompt: put the thing that needs to be reliable behind an interface the agent can't accidentally reshape.
+
+## The Consistency Trap
+
+Here's the failure mode nobody warns you about. Once you have two layers, they can disagree. The agent updates a file, the sync to the backend fails silently, and now your dashboard shows one truth and the agent believes another.
+
+Three rules that save you:
+
+1. **One writer per field.** Decide whether the file or the backend is authoritative for each piece of state, and never let both write it. State that the agent owns lives in files and syncs down. State a dashboard sets lives in the backend and syncs up. Never both directions for the same field.
+2. **Sync is a tool call, and it can fail.** Treat the sync like any other tool: log it, retry it, and surface the failure. A silent sync failure is worse than no sync, because it looks like everything worked.
+3. **Reconcile on startup.** When the agent boots, pull the backend's version of state before it acts. That one step turns "the box restarted and lost an hour of work" into a non-event.
+
+## Where I'd Draw the Line
+
+The progression, start to finish:
+
+- **Getting started** → Markdown files in the workspace. Most agents live here forever, and that's correct.
+- **Growing** → structured files, weekly consolidation, tuned search. Still just files, better organized.
+- **Scaling** → external backend via ACP resources for the state and history that need to outlive the machine, with files still the fast local layer on top.
+
+Don't skip steps. Every layer you add is a consistency surface you have to maintain, and a database you added before you needed it is pure liability. Move down a layer when the volume, uptime, or shared-state pain is real, and not one day before.
+
+Running a production agent that outgrew files? I'd love to hear what backend pattern worked for you, find me on the Virtuals Protocol community.
