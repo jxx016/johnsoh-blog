@@ -1,0 +1,89 @@
+---
+title: "I Spent a Day With Blackbox AI's Agents, API, and CLI. Here's Everything I Found."
+date: 2026-07-15
+description: "Blackbox AI is three developer surfaces sharing one login: an OpenAI-compatible router across 300+ models, a coding-agents API, and a CLI. Here's what actually works, and the one multi-agent trick worth the whole thing."
+tags: ["ai-agents", "developer-tools", "coding-agents"]
+draft: true
+---
+
+Blackbox AI markets itself as a secure inference platform, which for a developer undersells what it actually is. Under the hood it's three separate tools sharing a login: a model router, a coding-agents API, and a CLI. I spent a day wiring up all three. Here's what works and what I'd actually reach for.
+
+## Blackbox Is Really Three Products
+
+Before any tips, it helps to see the shape of the thing, because "secure inference platform" hides three distinct surfaces:
+
+- **The Router.** An OpenAI-compatible gateway to 300+ models behind a single key.
+- **The Agents API.** Dispatch coding agents over HTTP into isolated cloud sandboxes.
+- **The CLI.** A terminal coding agent with a plan mode and a multi-agent tournament.
+
+The common thread underneath all three is a gateway that enforces zero data retention and training opt-out by default. That's the feature that makes the rest usable for a team that can't spray its codebase across a dozen providers.
+
+## Start With the Router, It's a One-Line Swap
+
+The router is the least flashy piece and the most immediately useful. It's OpenAI-compatible, so adopting it is a base-URL change, not a rewrite.
+
+```bash
+curl https://enterprise.blackbox.ai/v1/chat/completions \
+  -H "Authorization: Bearer $BLACKBOX_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "model": "blackboxai/nvidia/nemotron-3-ultra",
+    "messages": [{ "role": "user", "content": "Hello!" }],
+    "stream": true
+  }'
+```
+
+Point your existing OpenAI SDK, LangChain, or LlamaIndex at that base URL, swap the key, and you're done. Switching models is a string change in the `model` field, and the response shape stays OpenAI-standard, so streaming, function calling, and JSON mode all keep working. The endpoints you get are the ones you'd expect: `/chat/completions`, `/embeddings`, and `/images/generations`.
+
+The real win isn't any one model, it's that a single key reaches 300+ of them with automatic failover and load balancing. If a provider has an outage, requests route to a backup instead of erroring out. That alone justifies putting a gateway in front of anything running in production.
+
+One tip: keep the model string in config, not in code. The entire point of an OpenAI-compatible router is that swapping Claude for Gemini for Nemotron becomes a config change instead of a deploy. Hard-code the model and you've thrown that away.
+
+## The Agents API: Coding Agents Over HTTP
+
+This is where it gets interesting. The Agents API lets you dispatch coding agents over HTTP. You send a repository, a branch policy, a model, and a task description, and an agent goes to work in an isolated cloud sandbox with its own file system, network, and process boundaries. It can install dependencies, run tests, build the project, and open a pull request.
+
+One API controls the whole lifecycle: create a run, stream every terminal event, inspect the sandbox files, send follow-up instructions, and manage the connected Git repo. It supports GitHub, GitLab, and Bitbucket, and there's no local install required. You can also drive the same runs from `app.blackbox.ai` in a browser.
+
+What I'd actually use this for is not "write my whole app." It's the boring, parallelizable work. Point it at a repo with "add test coverage to the payments module" or "migrate these 40 files off the old client," let it run in the sandbox, and review the PR it opens. It's effectively a CI job that writes code.
+
+## The Multi-Agent Trick Is the Real Feature
+
+Here's the part worth the whole thing. Both the Agents API and the CLI can send the same task to multiple agents at once: Blackbox, Claude Code, Codex, and Gemini in parallel, each on its own branch. Then a "Chairman LLM" evaluates the competing implementations and picks the best one.
+
+I've argued before that most multi-agent systems are one agent cosplaying as five. This is the exception that proves the rule. It's genuinely parallel, the agents are truly independent (different models, different branches, no shared context), and the join step is doing real work comparing outputs rather than just concatenating them. That's multi-agent for the right reason: diversity of independent attempts, not a pipeline of roles passing a baton.
+
+In practice it's a tournament for code. You pay N times the tokens for one task, and in return you get the best of four independent attempts instead of gambling on a single one. For a hard refactor where a wrong answer costs you an afternoon, that trade is often worth it. For a one-line fix, it's a waste. Use it deliberately.
+
+## The CLI: Plan Mode Is the Feature
+
+Install is one line:
+
+```bash
+npm install -g @blackbox/cli
+# or
+curl -fsSL https://blackbox.ai/install.sh | bash
+```
+
+The headline feature isn't autocomplete, it's Plan Mode. Before touching your code, the CLI breaks a task into ordered steps you can approve, comment on, or rewrite, and you review the whole thing as clean diffs before anything is applied. This is the single most important safety property in an agentic coding tool: see the plan, edit the plan, then execute. Agents that just start editing are how you end up reverting an entire branch and reconstructing what the tool was thinking.
+
+A few things that make it fit a real workflow:
+
+- **It reads your conventions automatically.** `AGENTS.md`, plugins, hooks, skills, and MCP servers, with no configuration step.
+- **Headless mode (`-p`) runs it in CI.** You can drop the agent into scripts and pipelines without an interactive prompt.
+- **`/multi-agent` brings the tournament to the terminal.** The same send-to-four-models-and-pick-the-best trick, locally.
+
+The rule I'd follow: run Plan Mode on anything non-trivial. Two minutes reading a plan is cheaper than reviewing a 30-file diff after the fact and trying to reverse-engineer the agent's intent.
+
+## What I'd Actually Reach For
+
+After a day, here's how I'd split it:
+
+1. **Router for production inference.** The failover and one-key-across-300-models story is worth it even if you never touch the agents.
+2. **CLI plus Plan Mode for day-to-day coding.** Plan-first is the right default, and reading `AGENTS.md` and MCP with no config is a genuine convenience.
+3. **Agents API for parallelizable grunt work.** Test coverage, mechanical migrations, anything you can describe in one sentence and review as a PR.
+4. **Multi-agent for the hard, expensive-to-get-wrong tasks.** Pay for four attempts, keep the best one, and only when the task actually warrants it.
+
+The through-line is that Blackbox is less a single product and more a toolbox for treating models as interchangeable and code changes as reviewable, with a zero-retention gateway underneath that makes all of it usable by teams who can't send their code to a dozen APIs.
+
+Trying Blackbox, or building your own agent tooling on top of a router like this? I'd love to compare notes, find me on the Virtuals Protocol community.
