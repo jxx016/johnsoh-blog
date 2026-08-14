@@ -12,7 +12,7 @@ Blackbox AI markets itself as a secure inference platform. For an enterprise buy
 
 Blackbox AI is a secure inference platform: a way to run frontier models with end-to-end encryption, zero data retention enforced at the gateway, PII stripped from prompts before they reach closed models, and training opt-out on by default. For enterprises that shows up as single-tenant deployments on reserved GPU capacity. For everyone else it's the same models you already use, reached through a gateway that promises not to keep anything.
 
-The privacy boundary is the differentiator, not the model list. Plenty of services wrap a pile of models behind one endpoint. What makes this one worth a look is that the wrapper is also somewhere teams who can't legally or contractually fan their code and prompts out to a dozen providers can actually route through. The router, the agents, and the CLI all sit on top of that.
+Plenty of services wrap a pile of models behind one endpoint, so a big model count on its own is nothing special. The gateway underneath is what earns a second look. It's somewhere teams who can't legally or contractually fan their code and prompts out to a dozen providers can actually route through, and the router, the agents, and the CLI all sit on top of it.
 
 ## Blackbox Is Really Three Products
 
@@ -41,7 +41,7 @@ curl https://enterprise.blackbox.ai/v1/chat/completions \
 
 Point your existing OpenAI SDK, LangChain, or LlamaIndex at that base URL, swap the key, and you're done. Switching models is a string change in the `model` field, and the response shape stays OpenAI-standard, so streaming, function calling, and JSON mode all keep working. The endpoints you get are the ones you'd expect: `/chat/completions`, `/embeddings`, and `/images/generations`.
 
-The real win isn't any one model, it's that a single key reaches 300+ of them with automatic failover and load balancing. If a provider has an outage, requests route to a backup instead of erroring out. That alone justifies putting a gateway in front of anything running in production.
+What you're really buying is reach. One key gets you 300+ models, with automatic failover and load balancing behind it. If a provider has an outage, requests route to a backup instead of erroring out. That alone justifies putting a gateway in front of anything running in production.
 
 One tip: keep the model string in config, not in code. The entire point of an OpenAI-compatible router is that swapping Claude for Gemini for Nemotron becomes a config change instead of a deploy. Hard-code the model and you've thrown that away.
 
@@ -71,7 +71,7 @@ npm install -g @blackbox/cli
 curl -fsSL https://blackbox.ai/install.sh | bash
 ```
 
-The headline feature isn't autocomplete, it's Plan Mode. Before touching your code, the CLI breaks a task into ordered steps you can approve, comment on, or rewrite, and you review the whole thing as clean diffs before anything is applied. This is the single most important safety property in an agentic coding tool: see the plan, edit the plan, then execute. Agents that just start editing are how you end up reverting an entire branch and reconstructing what the tool was thinking.
+The feature worth caring about is Plan Mode. Before touching your code, the CLI breaks a task into ordered steps you can approve, comment on, or rewrite, and you review the whole thing as clean diffs before anything is applied. This is the single most important safety property in an agentic coding tool: see the plan, edit the plan, then execute. Agents that just start editing are how you end up reverting an entire branch and reconstructing what the tool was thinking.
 
 A few things that make it fit a real workflow:
 

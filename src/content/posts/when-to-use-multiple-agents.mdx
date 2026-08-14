@@ -22,11 +22,11 @@ Splitting a prompt into "roles" doesn't create agents. It creates prompt section
 There are real reasons to run more than one agent. They have nothing to do with roles and everything to do with isolation:
 
 - **Genuine parallelism.** If three subtasks are truly independent, running them as three concurrent agents is faster in wall-clock time. This is the strongest case, and it's the one people underuse while overusing the "team of roles" case. Fan out, then join.
-- **Different permission scopes.** An agent that can spend from a wallet should not be the same agent that reads untrusted web content. Separating them means a prompt injection in the browsing agent can't reach the spending agent's tools. Isolation is a security boundary, not just an org chart.
+- **Different permission scopes.** An agent that can spend from a wallet should not be the same agent that reads untrusted web content. Separating them means a prompt injection in the browsing agent can't reach the spending agent's tools. That's a security boundary you can't get any other way.
 - **Different models for different jobs.** A cheap fast model triaging inputs and routing the hard cases to an expensive model is a real multi-agent win. You're not splitting a task, you're matching each job to the right tool.
 - **Independent failure and retry.** If one subtask is flaky, isolating it means you can retry just that piece without re-running everything. That's easier to reason about when it's a separate agent with a clean boundary.
 
-Notice the theme: every good reason is about isolation. Parallel execution, blast radius, cost tiers, failure domains. None of them are "the task has multiple steps." Multiple steps is a loop, not a team.
+Notice the theme: every good reason is about isolation. Parallel execution, blast radius, cost tiers, failure domains. None of them are "the task has multiple steps." A task with multiple steps is a loop. It doesn't need a team.
 
 ## The Question I Actually Ask
 
