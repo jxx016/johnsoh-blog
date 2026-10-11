@@ -1,0 +1,54 @@
+---
+title: "Agent Memory, Four Months Later: What Held Up and What I'd Change"
+date: 2026-10-10
+description: "Four months of running the two-layer agent memory pattern in practice. The core idea holds up; the hard part turned out to be deciding what deserves to be remembered at all."
+tags: ["agent-memory", "ai-agents"]
+---
+
+# Agent Memory, Four Months Later: What Held Up and What I'd Change
+
+In June I wrote that when agent memory outgrows Markdown files, you don't replace the files. You add a backend underneath them. Files stay the fast local layer, a backend becomes the durable layer, and a sync step reconciles the two.
+
+Four months of running that pattern later: the core idea holds up. But the edges turned out sharper than I made them sound, and there's one thing in the original post I'd now rewrite.
+
+## What held up
+
+**The layers are the right split.** Every time I've been tempted to teach an agent to talk to a database directly, the same thing happens: schema details leak into prompts, and then the agent starts "fixing" the schema. Keeping the database behind an interface the agent calls as a tool is still the discipline that matters.
+
+**One writer per field is still the rule that saves you.** I wrote this as rule #1 in June and it has only gotten more true. The divergence failures I've seen since were all the same shape: two systems both allowed to write the same piece of state, and a quiet disagreement that nobody noticed until it mattered.
+
+**Reconcile on startup.** Cheap, boring, and the single highest-value line of the whole design. If your agent survives restarts, this one step turns a lost hour of work into a non-event.
+
+## What I'd now rewrite
+
+The original post said that files stop being enough for three reasons: volume, uptime, or shared state. That was too neat. There's a fourth failure mode that arrives before any of those, and it's the one that actually gets you first:
+
+**Search quality degrades before volume does.** Long before you have tens of thousands of files, you get a few hundred stale ones: outdated runbooks, superseded decisions, context from a project that no longer exists. Semantic search doesn't know they're stale. It happily retrieves yesterday's thinking and presents it with full confidence. The files were still fast and single-machine and unshared, and they were already wrong.
+
+I used to frame memory growth as a storage problem. It's actually a *relevance* problem. A memory system that only appends is a compost heap, not a memory.
+
+## What I'd add: an expiry discipline
+
+If I could add one section to the June post, it would be this: every memory layer needs a pruning story from day one.
+
+- **Working notes get timestamps, not just content.** A note without a date is a note that can never be expired by a rule. Make staleness computable.
+- **Identity and strategy files get a review cadence, not just version control.** `MEMORY.md` is small and changes rarely, which means it's the file most likely to quietly go stale while everyone assumes it's the source of truth. I now reread mine on a schedule, the way you'd review a runbook.
+- **The durable layer needs a deletion path.** Syncing files down into a backend is easy to design. It's a one-way append forever unless you build the inverse. If the agent can write a memory, there should be a tool that can retire one. Unused memory is noise the retriever will gladly surface.
+
+The rule of thumb from June still works: if you'd write a SQL query against it, it belongs in the backend. I'd extend it: if you'd write a query to *find what to delete*, your memory system is already missing a feature.
+
+## The honest version of the progression
+
+June's progression was: files → better files → backend when the pain is real. Still correct. But I'd add a parallel track that runs from day one, regardless of scale:
+
+- **Getting started** → append freely. You don't know what's worth keeping yet.
+- **Once it works** → add timestamps and a review habit. This costs almost nothing and is the thing everyone skips.
+- **Scaling** → backend under the files, one writer per field, reconcile on startup. Same as June.
+
+The point of the middle step is that by the time you need the backend, you're syncing a memory system that's already been curated, not syncing years of compost.
+
+## Where I land now
+
+The two-layer pattern survived contact with reality. What's changed is my view of what the hard part is. I thought it was consistency between layers. Four months in, I'd say consistency is *solvable*: boring rules, boringly enforced. The genuinely hard part is deciding what deserves to be remembered at all, and having the discipline to forget the rest. Nobody's agent is going to do that for you. That's still a human job.
+
+Running an agent with a memory system you're proud of, or one you're suspicious of? I'd love to hear what's working. Find me on my site, or wherever you found this post.
